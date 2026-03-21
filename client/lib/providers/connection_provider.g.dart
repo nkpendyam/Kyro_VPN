@@ -42,7 +42,7 @@ final class ConnectionNotifierProvider
 }
 
 String _$connectionNotifierHash() =>
-    r'e8363abcf757196f8c564e2b5c609ce0c5213fd1';
+    r'003bf67a2caa088a387992665074ac49922c2eda';
 
 abstract class _$ConnectionNotifier extends $Notifier<VpnState> {
   VpnState build();
