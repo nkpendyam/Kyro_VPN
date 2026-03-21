@@ -12,18 +12,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-)
 
-type Node struct {
-	ID            string    `json:"id"`
-	PublicKey     string    `json:"public_key"`
-	PlayitAddress string    `json:"playit_address"`
-	City          string    `json:"city"`
-	CountryCode   string    `json:"country_code"`
-	IsSeed        bool      `json:"is_seed"`
-	IsOnline      bool      `json:"is_online"`
-	LastSeen      time.Time `json:"last_seen"`
-}
+	"github.com/nkpendyam/Kyro_VPN/coordinator/credits"
+	"github.com/nkpendyam/Kyro_VPN/coordinator/middleware"
+	"github.com/nkpendyam/Kyro_VPN/coordinator/registry"
+	"github.com/nkpendyam/Kyro_VPN/coordinator/selector"
+)
 
 func main() {
 	// Setup logger
@@ -46,21 +40,37 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to initialize schema")
 	}
 
+	// Handlers
+	registryHandler := registry.NewHandler(db)
+	selectorHandler := selector.NewHandler(db)
+	creditsHandler := credits.NewHandler(db)
+
 	// Router setup
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(cors.Default())
+	r.Use(middleware.RateLimit())
 
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	// Node API
-	r.GET("/nodes/best", func(c *gin.Context) {
-		// Placeholder for smart node selector logic
-		c.JSON(http.StatusOK, gin.H{"message": "Node selector not implemented yet"})
-	})
+	// Public APIs
+	nodesGroup := r.Group("/nodes")
+	{
+		nodesGroup.GET("/best", selectorHandler.GetBestNode)
+		nodesGroup.POST("/register", registryHandler.RegisterNode)
+		nodesGroup.POST("/heartbeat", registryHandler.Heartbeat)
+	}
+
+	// Protected APIs (Require Device ID)
+	authGroup := r.Group("/auth")
+	authGroup.Use(middleware.DeviceAuth())
+	{
+		authGroup.GET("/credits", creditsHandler.GetBalance)
+		authGroup.POST("/credits/transaction", creditsHandler.AddTransaction)
+	}
 
 	// Start server
 	port := os.Getenv("PORT")

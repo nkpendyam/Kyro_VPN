@@ -1,0 +1,3 @@
+-keep class com.wireguard.** { *; }
+-keep class org.amnezia.** { *; }
+-keep class io.flutter.** { *; }
