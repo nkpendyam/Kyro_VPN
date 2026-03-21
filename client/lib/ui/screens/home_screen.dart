@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/connection_provider.dart';
-import '../models/vpn_state.dart';
+import '../../providers/connection_provider.dart';
+import '../../models/vpn_state.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vpnState = ref.watch(connectionNotifierProvider);
+    final vpnState = ref.watch(connectionProvider);
 
     return Scaffold(
       body: Center(
@@ -73,9 +73,9 @@ class HomeScreen extends ConsumerWidget {
           ? null 
           : () {
               if (isDisconnected) {
-                ref.read(connectionNotifierProvider.notifier).connect('Seed Node');
+                ref.read(connectionProvider.notifier).connect();
               } else {
-                ref.read(connectionNotifierProvider.notifier).disconnect();
+                ref.read(connectionProvider.notifier).disconnect();
               }
             },
       child: Padding(
