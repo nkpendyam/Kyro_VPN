@@ -1,0 +1,23 @@
+{
+  "theme": "Default",
+  "autoAcceptTrustedTools": false,
+  "context": {
+    "fileName": "GEMINI.md"
+  },
+  "sandbox": false,
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "description": "Read and write Kyro VPN project files"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "Read Amnezia, Xray-core, Mysterium source repos"
+    }
+  }
+}
