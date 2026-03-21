@@ -1,12 +1,15 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/vpn_state.dart';
 import '../models/vpn_node.dart';
+import '../services/tunnel_service.dart';
 import 'api_provider.dart';
 
 part 'connection_provider.g.dart';
 
 @riverpod
 class ConnectionNotifier extends _$ConnectionNotifier {
+  final TunnelService _tunnelService = TunnelService();
+
   @override
   VpnState build() => const Disconnected();
 
@@ -17,17 +20,27 @@ class ConnectionNotifier extends _$ConnectionNotifier {
       final nodeData = await ref.read(apiClientProvider).getBestNode();
       final node = VpnNode.fromJson(nodeData);
 
-      // 2. Placeholder for Tunnel Logic
-      // Actual Amnezia core call will be added in Phase 8 (Platform Integration)
-      await Future.delayed(const Duration(seconds: 2));
+      // 2. Start Native Tunnel
+      final bool success = await _tunnelService.startVpn(
+        serverPublicKey: node.publicKey,
+        endpoint: node.endpoint,
+        localAddress: '10.0.0.2',
+        dns: '1.1.1.1',
+      );
 
-      state = Connected(nodeId: node.city, since: DateTime.now());
+      if (success) {
+        state = Connected(nodeId: node.city, since: DateTime.now());
+      } else {
+        // If false, it might mean permissions are pending on Android
+        // We'll just stay in Connecting state or show a message
+      }
     } catch (e) {
       state = VpnError(e.toString());
     }
   }
 
   Future<void> disconnect() async {
+    await _tunnelService.stopVpn();
     state = const Disconnected();
   }
 }
