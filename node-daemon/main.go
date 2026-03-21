@@ -19,19 +19,19 @@ func main() {
 
 	// 2. Flags
 	coordinator := flag.String("coordinator", "http://localhost:8080", "Coordinator API URL")
-	playitAddr := flag.String("playit", "", "playit.gg public address (e.g. abc.at.ply.gg:12345)")
+	endpoint := flag.String("endpoint", "", "Public tunnel endpoint (e.g. yourname.portmap.io:12345)")
 	city := flag.String("city", "Unknown", "Node city")
 	country := flag.String("country", "??", "Node country code")
 	flag.Parse()
 
-	if *playitAddr == "" {
-		log.Fatal().Msg("playit address is required. Use --playit flag.")
+	if *endpoint == "" {
+		log.Fatal().Msg("Endpoint is required. Use --endpoint flag (e.g. from Portmap.io).")
 	}
 
 	// 3. Register Node
 	cfg := registration.Config{
 		CoordinatorURL: *coordinator,
-		PlayitAddress:  *playitAddr,
+		PlayitAddress:  *endpoint,
 		City:           *city,
 		CountryCode:    *country,
 	}
@@ -41,6 +41,7 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to register node")
 	}
 
+	log.Info().Str("node_id", nodeID).Msg("Node registered successfully")
 	log.Info().Str("private_key", privateKey).Msg("IMPORTANT: Secure this private key")
 
 	// 4. Start Heartbeat (Background)
