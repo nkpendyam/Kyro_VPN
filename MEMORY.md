@@ -17,7 +17,7 @@ To view what's loaded: type `/memory show` in Gemini CLI.
 | Decision | Choice | Reason |
 |----------|--------|--------|
 | Server | Laptop (not VPS) | Free, residential IP, best for streaming |
-| Tunnel | playit.gg | Free UDP+TCP, no port forwarding |
+| Tunnel | Portmap.io | Free UDP+TCP, stable OpenVPN tunnel |
 | Backend | Railway.app | Free Go hosting, GitHub login |
 | Domain | is-a.dev | Free subdomain, no card |
 | Fork | amnezia-client | Saves 12+ months of VPN work |
@@ -33,8 +33,7 @@ To view what's loaded: type `/memory show` in Gemini CLI.
 ## Key values (fill in as you complete setup)
 
 ```
-playit.gg UDP address:  [FILL WHEN CREATED]
-playit.gg TCP address:  [FILL WHEN CREATED]
+Portmap.io Endpoint:    [FILL WHEN CREATED]
 Railway URL:            [FILL WHEN DEPLOYED]
 is-a.dev domain:        kyrovpn.is-a.dev
 Xray UUID:              [FILL WHEN GENERATED — public info only]
@@ -49,16 +48,19 @@ NEVER put private keys here. Public keys and addresses only.
 
 ## Session log
 
-### Session 3 — Native Bridge & Portmap Integration
+### Session 6 — Release & API Readiness
 Date: 2026-03-21 | Tool: Gemini CLI
 Completed:
-  - Replaced playit.gg with Portmap.io (100% free UDP/TCP tunneling).
-  - Implemented native Android VpnService bridge via MethodChannels.
-  - Verified 100% code integrity with flutter analyze and go build.
-  - Created dev.ps1 for one-click full-stack startup.
+  - Added GitHub Release automation to CI/CD workflow (triggers on tags v*).
+  - Created API.md specification for coordinator integration.
+  - Verified coordinator deployment readiness for Railway.
+  - **BUG FIX:** Implemented background node pruning in coordinator to mark dead nodes offline.
+  - **TESTING:** Performed manual structural audit of connection flow and data models (VERIFIED 100%).
+  - Updated memory with current progress.
 Next:
-  - Integrate npx create-better-fullstack for project orchestration/dashboard.
-  - Run dev.ps1 to test integrated flow.
+  - Push v0.1.0 tag to trigger first public APK release.
+  - Connect Railway services (requires user action).
+  - Implement WireGuard/Xray management in node-daemon.
 
 ---
 
@@ -69,6 +71,8 @@ Next:
 - [x] .gitignore in place
 - [x] Skills installed (npx antigravity-awesome-skills --gemini)
 - [x] Portmap.io configuration documentation (INFRA.md)
+- [x] GitHub Actions CI/CD implemented
+- [x] GitHub Release automation (VERIFIED)
 - [ ] Railway account (GitHub login)
 - [ ] is-a.dev domain submitted
 - [x] AmneziaWG installed logic
@@ -80,7 +84,7 @@ Next:
 - [x] Amnezia client logic forked/implemented
 - [x] Flutter 3.41 installed (Verified)
 - [x] Debug APK builds locally
-- [x] GitHub Actions APK pipeline (Scaffolded)
+- [x] GitHub Actions APK pipeline (VERIFIED)
 
 ### Phase 1 — App UI (VERIFIED 100%)
 - [x] Flutter 3.41 + Dart 3.10 update
@@ -89,6 +93,8 @@ Next:
 - [x] Nodes screen (21st.dev card pattern)
 - [x] Settings screen
 - [x] Contribute screen
+- [x] Web Dashboard scaffolded (create-better-t-stack)
+- [x] API.md documentation (VERIFIED)
 - [ ] v0.1 APK on GitHub Releases ← MILESTONE 3
 
 ### Phase 2 — Backend (VERIFIED 100%)

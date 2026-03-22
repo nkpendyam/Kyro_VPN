@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -25,7 +25,7 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	// Database setup
-	db, err := sql.Open("sqlite3", "./kyro.db")
+	db, err := sql.Open("sqlite", "./kyro.db")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to open database")
 	}
@@ -71,6 +71,23 @@ func main() {
 		authGroup.GET("/credits", creditsHandler.GetBalance)
 		authGroup.POST("/credits/transaction", creditsHandler.AddTransaction)
 	}
+
+	// Start Pruning Task (Background)
+	go func() {
+		ticker := time.NewTicker(2 * time.Minute)
+		for range ticker.C {
+			query := "UPDATE nodes SET is_online = 0 WHERE last_seen < datetime('now', '-5 minutes') AND is_online = 1"
+			res, err := db.Exec(query)
+			if err != nil {
+				log.Error().Err(err).Msg("failed to prune offline nodes")
+				continue
+			}
+			count, _ := res.RowsAffected()
+			if count > 0 {
+				log.Info().Int64("count", count).Msg("pruned offline nodes")
+			}
+		}
+	}()
 
 	// Start server
 	port := os.Getenv("PORT")

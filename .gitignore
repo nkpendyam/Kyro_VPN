@@ -21,3 +21,25 @@ node-daemon/dev.db
 .DS_Store
 __pycache__/
 node_modules/
+
+# Logs
+*.log
+coordinator/coordinator.log
+node-daemon/daemon.log
+
+# Executables
+*.exe
+coordinator/coordinator
+node-daemon/daemon
+
+# Databases
+*.db
+coordinator/kyro.db
+
+# OpenVPN / Tunnels
+*.ovpn
+infra/laptop/kyro-portmap.ovpn
+
+# Agent / Tooling
+.gemini/tmp/
+.gemini/logs/
