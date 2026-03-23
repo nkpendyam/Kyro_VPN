@@ -17,11 +17,8 @@ class MainActivity: FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
             call, result ->
             when (call.method) {
-                "startVpn" -> {
-                    val serverPublicKey = call.argument<String>("serverPublicKey")
-                    val endpoint = call.argument<String>("endpoint")
-                    val localAddress = call.argument<String>("localAddress")
-                    val dns = call.argument<String>("dns")
+                "startVpnWithConfig" -> {
+                    val configPath = call.argument<String>("configPath")
 
                     val intent = VpnService.prepare(this)
                     if (intent != null) {
@@ -31,10 +28,7 @@ class MainActivity: FlutterActivity() {
                         onActivityResult(0, Activity.RESULT_OK, null)
                         
                         val vpnIntent = Intent(this, KyroVpnService::class.java).apply {
-                            putExtra("serverPublicKey", serverPublicKey)
-                            putExtra("endpoint", endpoint)
-                            putExtra("localAddress", localAddress)
-                            putExtra("dns", dns)
+                            putExtra("configPath", configPath)
                         }
                         startService(vpnIntent)
                         vpnStatus = "connected"

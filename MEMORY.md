@@ -48,19 +48,19 @@ NEVER put private keys here. Public keys and addresses only.
 
 ## Session log
 
-### Session 6 — Release & API Readiness
-Date: 2026-03-21 | Tool: Gemini CLI
+### Session 7 — Security Cleanup & Sync
+Date: 2026-03-22 | Tool: Gemini CLI
 Completed:
-  - Added GitHub Release automation to CI/CD workflow (triggers on tags v*).
-  - Created API.md specification for coordinator integration.
-  - Verified coordinator deployment readiness for Railway.
-  - **BUG FIX:** Implemented background node pruning in coordinator to mark dead nodes offline.
-  - **TESTING:** Performed manual structural audit of connection flow and data models (VERIFIED 100%).
-  - Updated memory with current progress.
+  - **CRITICAL:** Identified and untracked `infra/laptop/kyro-portmap.ovpn` containing a private key.
+  - Cleaned repository by untracking logs, executables, and temporary agent files.
+  - Updated root `.gitignore` with comprehensive rules for logs, binaries, and secrets.
+  - Synced repository by adding `API.md` and `.github/` workflows to tracking.
+  - Verified project health by building `coordinator` and `node-daemon` successfully.
+  - Pushed clean state to GitHub.
 Next:
-  - Push v0.1.0 tag to trigger first public APK release.
-  - Connect Railway services (requires user action).
-  - Implement WireGuard/Xray management in node-daemon.
+  - **User Action Required:** Rotate Portmap.io credentials (old ones are in git history).
+  - Push `v0.1.0` tag to trigger first public APK release.
+  - Connect Railway services.
 
 ---
 

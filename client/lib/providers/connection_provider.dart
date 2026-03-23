@@ -20,12 +20,15 @@ class ConnectionNotifier extends _$ConnectionNotifier {
       final nodeData = await ref.read(apiClientProvider).getBestNode();
       final node = VpnNode.fromJson(nodeData);
 
+      // In production, generate this securely via WireGuard dart package or native code
+      final tempClientPrivKey = "mH2Z+...=";
+
       // 2. Start Native Tunnel
       final bool success = await _tunnelService.startVpn(
+        clientPrivateKey: tempClientPrivKey,
         serverPublicKey: node.publicKey,
         endpoint: node.endpoint,
         localAddress: '10.0.0.2',
-        dns: '1.1.1.1',
       );
 
       if (success) {

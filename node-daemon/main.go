@@ -36,13 +36,12 @@ func main() {
 		CountryCode:    *country,
 	}
 
-	nodeID, privateKey, err := registration.Register(cfg)
+	nodeID, _, err := registration.Register(cfg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to register node")
 	}
 
-	log.Info().Str("node_id", nodeID).Msg("Node registered successfully")
-	log.Info().Str("private_key", privateKey).Msg("IMPORTANT: Secure this private key")
+	log.Info().Str("node_id", nodeID).Msg("Node registered successfully. Private key is secured in memory.")
 
 	// 4. Start Heartbeat (Background)
 	go health.StartHeartbeat(nodeID, *coordinator)
