@@ -10,6 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
+
+	"github.com/nkpendyam/Kyro_VPN/coordinator/vpnconfig"
 )
 
 type Handler struct {
@@ -31,6 +33,50 @@ type HeartbeatRequest struct {
 	NodeID        string `json:"node_id" binding:"required"`
 	BandwidthMbps int    `json:"bandwidth_mbps"`
 	LatencyMs     int    `json:"latency_ms"`
+}
+
+type GetConfigRequest struct {
+	NodeID       string `json:"node_id" binding:"required"`
+	ClientPubKey string `json:"client_pubkey" binding:"required"`
+}
+
+// GetConfig returns a WireGuard configuration for a specific node
+func (h *Handler) GetConfig(c *gin.Context) {
+	var req GetConfigRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	var pubKey, endpoint string
+	err := h.db.QueryRowContext(ctx, "SELECT public_key, playit_address FROM nodes WHERE id = ? AND is_online = 1", req.NodeID).Scan(&pubKey, &endpoint)
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "node not found or offline"})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+		return
+	}
+
+	// In a real system, we'd add the client as a peer on the node here via RPC or similar.
+	// For this prototype, the node-daemon will allow any peer with a valid handshake.
+
+	config, err := vpnconfig.Generate(vpnconfig.ConfigParams{
+		ClientPrivateKey: "<CLIENT_PRIVATE_KEY>", // Placeholder: client fills this
+		ClientAddress:    "10.0.0.2/24",
+		ServerPublicKey:  pubKey,
+		ServerEndpoint:   endpoint,
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate config"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"config": config})
 }
 
 // RegisterNode handles new daemon connections
@@ -70,6 +116,40 @@ func (h *Handler) RegisterNode(c *gin.Context) {
 
 	log.Info().Str("node_id", nodeID).Msg("node registered successfully")
 	c.JSON(http.StatusOK, gin.H{"node_id": nodeID, "status": "registered"})
+}
+
+// FetchNodes returns all online nodes
+func (h *Handler) FetchNodes(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	rows, err := h.db.QueryContext(ctx, "SELECT id, public_key, playit_address, city, country_code, bandwidth_mbps, latency_ms FROM nodes WHERE is_online = 1")
+	if err != nil {
+		log.Error().Err(err).Msg("failed to fetch nodes")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+		return
+	}
+	defer rows.Close()
+
+	var nodes []gin.H
+	for rows.Next() {
+		var id, pubKey, addr, city, country string
+		var bandwidth, latency int
+		if err := rows.Scan(&id, &pubKey, &addr, &city, &country, &bandwidth, &latency); err != nil {
+			continue
+		}
+		nodes = append(nodes, gin.H{
+			"node_id":      id,
+			"public_key":   pubKey,
+			"endpoint":     addr,
+			"city":         city,
+			"country_code": country,
+			"bandwidth":    bandwidth,
+			"latency":      latency,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"nodes": nodes})
 }
 
 // Heartbeat updates node status

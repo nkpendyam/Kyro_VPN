@@ -59,10 +59,13 @@ func main() {
 	// Public APIs
 	nodesGroup := r.Group("/nodes")
 	{
+		nodesGroup.GET("", registryHandler.FetchNodes)
 		nodesGroup.GET("/best", selectorHandler.GetBestNode)
 		nodesGroup.POST("/register", registryHandler.RegisterNode)
 		nodesGroup.POST("/heartbeat", registryHandler.Heartbeat)
 	}
+
+	r.POST("/vpn/config", registryHandler.GetConfig)
 
 	// Protected APIs (Require Device ID)
 	authGroup := r.Group("/auth")

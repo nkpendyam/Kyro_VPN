@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/rs/zerolog/log"
-	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 type Config struct {
@@ -16,6 +13,7 @@ type Config struct {
 	PlayitAddress  string
 	City           string
 	CountryCode    string
+	PublicKey      string
 }
 
 type RegisterRequest struct {
@@ -31,22 +29,15 @@ type RegisterResponse struct {
 }
 
 func Register(cfg Config) (string, string, error) {
-	// 1. Generate WireGuard Keys
-	priv, err := wgtypes.GeneratePrivateKey()
-	if err != nil {
-		return "", "", fmt.Errorf("generate key: %w", err)
-	}
-	pub := priv.PublicKey().String()
-
-	// 2. Prepare Request
+	// 1. Prepare Request
 	reqBody, _ := json.Marshal(RegisterRequest{
-		PublicKey:     pub,
+		PublicKey:     cfg.PublicKey,
 		PlayitAddress: cfg.PlayitAddress,
 		City:           cfg.City,
 		CountryCode:   cfg.CountryCode,
 	})
 
-	// 3. Send to Coordinator
+	// 2. Send to Coordinator
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Post(cfg.CoordinatorURL+"/nodes/register", "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
@@ -63,6 +54,5 @@ func Register(cfg Config) (string, string, error) {
 		return "", "", fmt.Errorf("decode response: %w", err)
 	}
 
-	log.Info().Str("node_id", res.NodeID).Msg("node registered successfully")
-	return res.NodeID, priv.String(), nil
+	return res.NodeID, "ok", nil
 }

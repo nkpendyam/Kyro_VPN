@@ -46,4 +46,25 @@ class ApiClient {
       throw Exception('Failed to fetch credits: $e');
     }
   }
+
+  Future<List<dynamic>> fetchNodes() async {
+    try {
+      final response = await _dio.get('/nodes');
+      return response.data['nodes'] as List<dynamic>;
+    } catch (e) {
+      throw Exception('Failed to fetch nodes: $e');
+    }
+  }
+
+  Future<String> getConfig(String nodeId, String clientPubKey) async {
+    try {
+      final response = await _dio.post('/vpn/config', data: {
+        'node_id': nodeId,
+        'client_pubkey': clientPubKey,
+      });
+      return response.data['config'] as String;
+    } catch (e) {
+      throw Exception('Failed to fetch VPN config: $e');
+    }
+  }
 }

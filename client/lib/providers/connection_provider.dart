@@ -13,19 +13,24 @@ class ConnectionNotifier extends _$ConnectionNotifier {
   @override
   VpnState build() => const Disconnected();
 
-  Future<void> connect() async {
-    state = const Connecting();
+  Future<void> connect({VpnNode? preferred}) async {
     try {
-      // 1. Fetch Best Node from Coordinator
-      final nodeData = await ref.read(apiClientProvider).getBestNode();
-      final node = VpnNode.fromJson(nodeData);
+      VpnNode node;
+      if (preferred != null) {
+        node = preferred;
+      } else {
+        final nodeData = await ref.read(apiClientProvider).getBestNode();
+        node = VpnNode.fromJson(nodeData);
+      }
+
+      state = Connecting(node);
 
       // In production, generate this securely via WireGuard dart package or native code
-      final tempClientPrivKey = "mH2Z+...=";
+      final clientPrivateKey = _generateWireGuardPrivateKey();
 
       // 2. Start Native Tunnel
       final bool success = await _tunnelService.startVpn(
-        clientPrivateKey: tempClientPrivKey,
+        clientPrivateKey: clientPrivateKey,
         serverPublicKey: node.publicKey,
         endpoint: node.endpoint,
         localAddress: '10.0.0.2',
@@ -34,8 +39,7 @@ class ConnectionNotifier extends _$ConnectionNotifier {
       if (success) {
         state = Connected(nodeId: node.city, since: DateTime.now());
       } else {
-        // If false, it might mean permissions are pending on Android
-        // We'll just stay in Connecting state or show a message
+        state = const VpnError("Failed to establish tunnel");
       }
     } catch (e) {
       state = VpnError(e.toString());
@@ -45,5 +49,12 @@ class ConnectionNotifier extends _$ConnectionNotifier {
   Future<void> disconnect() async {
     await _tunnelService.stopVpn();
     state = const Disconnected();
+  }
+
+  String _generateWireGuardPrivateKey() {
+    // Note: In a real production app, use a dedicated crypto library
+    // or native WireGuard bridge to generate secure Curve25519 keys.
+    // This is a placeholder for the logic.
+    return "GENERATED_KEY_PLACEHOLDER";
   }
 }

@@ -1,3 +1,5 @@
+import 'vpn_node.dart';
+
 sealed class VpnState {
   const VpnState();
 }
@@ -7,7 +9,8 @@ class Disconnected extends VpnState {
 }
 
 class Connecting extends VpnState {
-  const Connecting();
+  final VpnNode node;
+  const Connecting(this.node);
 }
 
 class Connected extends VpnState {
